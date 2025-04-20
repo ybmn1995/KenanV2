@@ -1,5 +1,9 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs/Kenan/CopilotIndices/17.13.433.20974
+﻿# Ignore build and user-specific folders/files
+.vs/
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.user
+*.suo
