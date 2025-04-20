@@ -80,3 +80,4 @@ C:\KenanC#\Kenan\obj\Debug\net8.0-windows\refint\Kenan.dll
 C:\KenanC#\Kenan\obj\Debug\net8.0-windows\Kenan.pdb
 C:\KenanC#\Kenan\obj\Debug\net8.0-windows\Kenan.genruntimeconfig.cache
 C:\KenanC#\Kenan\obj\Debug\net8.0-windows\ref\Kenan.dll
+C:\KenanC#\Kenan\obj\Debug\net8.0-windows\Kenan.sourcelink.json

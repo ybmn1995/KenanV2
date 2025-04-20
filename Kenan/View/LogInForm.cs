@@ -36,5 +36,9 @@ namespace Kenan.View
             MessageBox.Show("Response:\n" + response, "API Response");
         }
 
+        private void bgLeft_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

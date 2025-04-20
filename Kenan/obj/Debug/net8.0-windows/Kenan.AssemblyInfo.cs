@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Kenan")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+14e716f0269764b9aa912e58690f9a5b8307fdad")]
 [assembly: System.Reflection.AssemblyProductAttribute("Kenan")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Kenan")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
