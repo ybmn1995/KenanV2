@@ -29,7 +29,7 @@ std::string GetVMPasswordFromEnv() {
     while (std::getline(envFile, line)) {
         line = trim(line);
         if (line.find("VMPassword=") == 0) {
-            return line.substr(11); // after "VMPassword="
+            return line.substr(11);
         }
     }
     return "";
@@ -46,8 +46,8 @@ DWORD StartVMPlayerAndGetPID(const std::wstring& vmxPath) {
     return 0;
 }
 
-// Recursively log all child windows with hierarchy
-void LogAllChildWindows(HWND parent, std::wstring& log, int level = 0) {
+// Recursively search for Edit control that follows Static with label "P&assword:"
+HWND FindTargetEditControl(HWND parent, bool& passwordLabelFound) {
     HWND child = NULL;
     wchar_t className[256];
     wchar_t windowText[256];
@@ -56,12 +56,18 @@ void LogAllChildWindows(HWND parent, std::wstring& log, int level = 0) {
         GetClassNameW(child, className, 256);
         GetWindowTextW(child, windowText, 256);
 
-        std::wstring indent(level * 2, L' ');
-        log += indent + L"↳ Class: " + std::wstring(className) + L" | Label: " + std::wstring(windowText) + L"\n";
-        
-        // Recursively inspect grandchildren
-        LogAllChildWindows(child, log, level + 1);
+        if (wcscmp(className, L"Static") == 0 && wcscmp(windowText, L"P&assword:") == 0) {
+            passwordLabelFound = true;
+        }
+        else if (passwordLabelFound && wcscmp(className, L"Edit") == 0) {
+            return child;
+        }
+
+        // Dive into nested children
+        HWND nested = FindTargetEditControl(child, passwordLabelFound);
+        if (nested != NULL) return nested;
     }
+    return NULL;
 }
 
 void InjectPasswordDirect(const std::string& password) {
@@ -71,12 +77,26 @@ void InjectPasswordDirect(const std::string& password) {
         return;
     }
 
-    // Print all children window class names and labels
-    std::wstring classLog = L"🔍 All Window Hierarchy:\n";
-    LogAllChildWindows(vmwareMain, classLog);
-    MessageBoxW(NULL, classLog.c_str(), L"Class + Label Hierarchy", MB_OK);
+    bool passwordLabelFound = false;
+    HWND passwordEdit = FindTargetEditControl(vmwareMain, passwordLabelFound);
 
-    // Injection not performed in this version – use your own hook logic if needed
+    if (!passwordEdit) {
+        MessageBoxA(NULL, "❌ Password Edit control not found after label 'P&assword:'.", "Injector", MB_OK | MB_ICONERROR);
+        return;
+    }
+
+    std::wstring wpass(password.begin(), password.end());
+    SendMessageW(passwordEdit, WM_SETTEXT, 0, (LPARAM)wpass.c_str());
+
+    Sleep(1000); // Let the GUI update
+
+    // Simulate ENTER key
+    INPUT enterDown = { INPUT_KEYBOARD };
+    enterDown.ki.wVk = VK_RETURN;
+    INPUT enterUp = enterDown;
+    enterUp.ki.dwFlags = KEYEVENTF_KEYUP;
+    INPUT inputs[2] = { enterDown, enterUp };
+    SendInput(2, inputs, sizeof(INPUT));
 }
 
 int main() {
@@ -99,8 +119,9 @@ int main() {
         return 1;
     }
 
-    Sleep(8000); // Allow GUI to appear
+    Sleep(8000); // Wait for UI to render
     InjectPasswordDirect(password);
 
+    MessageBoxA(NULL, "✅ Password injected successfully.", "Injector", MB_OK | MB_ICONINFORMATION);
     return 0;
 }

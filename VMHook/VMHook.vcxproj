@@ -135,7 +135,6 @@
   <ItemGroup>
     <ClCompile Include="injector.cpp" />
     <ClCompile Include="PasswordRead.cpp" />
-    <ClCompile Include="VMHook.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".env" />
