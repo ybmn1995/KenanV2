@@ -21,7 +21,7 @@ namespace Kenan.View
         private async void BtnSignIn_Click(object sender, EventArgs e)
         {
             var url = Environment.GetEnvironmentVariable("KENAN_API_URL") ??
-          "https://run.mocky.io/v3/942b0d49-e323-43b1-b7da-9caf1c0f774b"; // fallback URL
+                "https://run.mocky.io/v3/942b0d49-e323-43b1-b7da-9caf1c0f774b";
 
             var controller = new Kenan.Controller.ApiController(url);
 
@@ -38,7 +38,7 @@ namespace Kenan.View
 
         private void bgLeft_Click(object sender, EventArgs e)
         {
-
+            // Optional: Add any click handling for left image
         }
     }
 }

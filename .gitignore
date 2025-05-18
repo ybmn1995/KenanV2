@@ -1,9 +1,15 @@
-﻿# Ignore build and user-specific folders/files
-.vs/
-bin/
-obj/
-*.dll
-*.exe
-*.pdb
-*.user
+
 *.suo
+*.user
+*.vcxproj.user
+*.obj
+*.pdb
+*.exe
+*.dll
+*.ipch
+*.log
+*.vs
+x64/
+Debug/
+Release/
+build/

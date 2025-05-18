@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<Foundry>
+<VM>
+<VMId type="string">52 b0 dc 64 48 35 9d 6e-c2 13 2a b6 39 92 fd bc</VMId>
+<ClientMetaData>
+<clientMetaDataAttributes/>
+<HistoryEventList/></ClientMetaData>
+<vmxPathName type="string">KenanOptimizedVM2.vmx</vmxPathName></VM></Foundry>
