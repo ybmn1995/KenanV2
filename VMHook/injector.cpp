@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <vector>
 
 std::string trim(const std::string& str) {
     size_t start = str.find_first_not_of(" \t\r\n");
@@ -47,40 +46,46 @@ DWORD StartVMPlayerAndGetPID(const std::wstring& vmxPath) {
     return 0;
 }
 
-void SendPasswordToVMware(const std::string& password) {
-    Sleep(3000); // wait for VMware to show the GUI
-    HWND hwnd = FindWindow(NULL, L"VMware Workstation 17 Player (Non-commercial use only)");
-    if (!hwnd) {
-        MessageBoxA(NULL, "❌ VMware window not found!", "Injector", MB_OK | MB_ICONERROR);
+// Recursive search for Edit control
+HWND FindPasswordEditControl(HWND parent) {
+    HWND child = NULL;
+    wchar_t className[256];
+    while ((child = FindWindowExW(parent, child, NULL, NULL)) != NULL) {
+        GetClassNameW(child, className, 256);
+        if (wcscmp(className, L"Edit") == 0) {
+            return child;
+        }
+        HWND nested = FindPasswordEditControl(child);
+        if (nested != NULL) return nested;
+    }
+    return NULL;
+}
+
+void InjectPasswordDirect(const std::string& password) {
+    HWND vmwareMain = FindWindow(NULL, L"VMware Workstation 17 Player (Non-commercial use only)");
+    if (!vmwareMain) {
+        MessageBoxA(NULL, "❌ VMware window not found.", "Injector", MB_OK | MB_ICONERROR);
         return;
     }
 
-    SetForegroundWindow(hwnd);
-    Sleep(1000); // wait for focus
-
-    std::vector<INPUT> inputs;
-    for (char ch : password) {
-        INPUT input = {};
-        input.type = INPUT_KEYBOARD;
-        input.ki.wVk = 0;
-        input.ki.wScan = ch;
-        input.ki.dwFlags = KEYEVENTF_UNICODE;
-        inputs.push_back(input);
-
-        INPUT up = input;
-        up.ki.dwFlags |= KEYEVENTF_KEYUP;
-        inputs.push_back(up);
+    HWND passwordEdit = FindPasswordEditControl(vmwareMain);
+    if (!passwordEdit) {
+        MessageBoxA(NULL, "❌ Password input field not found.", "Injector", MB_OK | MB_ICONERROR);
+        return;
     }
+
+    std::wstring wpass(password.begin(), password.end());
+    SendMessageW(passwordEdit, WM_SETTEXT, 0, (LPARAM)wpass.c_str());
+
+    Sleep(1000); // Give time before submitting
 
     // Press ENTER
     INPUT enterDown = { INPUT_KEYBOARD };
     enterDown.ki.wVk = VK_RETURN;
     INPUT enterUp = enterDown;
     enterUp.ki.dwFlags = KEYEVENTF_KEYUP;
-    inputs.push_back(enterDown);
-    inputs.push_back(enterUp);
-
-    SendInput((UINT)inputs.size(), inputs.data(), sizeof(INPUT));
+    INPUT inputs[2] = { enterDown, enterUp };
+    SendInput(2, inputs, sizeof(INPUT));
 }
 
 int main() {
@@ -103,10 +108,9 @@ int main() {
         return 1;
     }
 
-    Sleep(2000); // wait for vmplayer UI to fully load
-    SendPasswordToVMware(password);
+    Sleep(8000); // Wait for GUI to load fully
+    InjectPasswordDirect(password);
 
-    MessageBoxA(NULL, ("✅ Password injected! " + password).c_str(), "Injector", MB_OK | MB_ICONINFORMATION);
-
+    MessageBoxA(NULL, ("✅ Password injected: " + password).c_str(), "Injector", MB_OK | MB_ICONINFORMATION);
     return 0;
 }
