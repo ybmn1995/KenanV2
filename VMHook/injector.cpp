@@ -46,19 +46,22 @@ DWORD StartVMPlayerAndGetPID(const std::wstring& vmxPath) {
     return 0;
 }
 
-// Recursive search for Edit control
-HWND FindPasswordEditControl(HWND parent) {
+// Recursively log all child windows with hierarchy
+void LogAllChildWindows(HWND parent, std::wstring& log, int level = 0) {
     HWND child = NULL;
     wchar_t className[256];
+    wchar_t windowText[256];
+
     while ((child = FindWindowExW(parent, child, NULL, NULL)) != NULL) {
         GetClassNameW(child, className, 256);
-        if (wcscmp(className, L"Edit") == 0) {
-            return child;
-        }
-        HWND nested = FindPasswordEditControl(child);
-        if (nested != NULL) return nested;
+        GetWindowTextW(child, windowText, 256);
+
+        std::wstring indent(level * 2, L' ');
+        log += indent + L"↳ Class: " + std::wstring(className) + L" | Label: " + std::wstring(windowText) + L"\n";
+        
+        // Recursively inspect grandchildren
+        LogAllChildWindows(child, log, level + 1);
     }
-    return NULL;
 }
 
 void InjectPasswordDirect(const std::string& password) {
@@ -68,24 +71,12 @@ void InjectPasswordDirect(const std::string& password) {
         return;
     }
 
-    HWND passwordEdit = FindPasswordEditControl(vmwareMain);
-    if (!passwordEdit) {
-        MessageBoxA(NULL, "❌ Password input field not found.", "Injector", MB_OK | MB_ICONERROR);
-        return;
-    }
+    // Print all children window class names and labels
+    std::wstring classLog = L"🔍 All Window Hierarchy:\n";
+    LogAllChildWindows(vmwareMain, classLog);
+    MessageBoxW(NULL, classLog.c_str(), L"Class + Label Hierarchy", MB_OK);
 
-    std::wstring wpass(password.begin(), password.end());
-    SendMessageW(passwordEdit, WM_SETTEXT, 0, (LPARAM)wpass.c_str());
-
-    Sleep(1000); // Give time before submitting
-
-    // Press ENTER
-    INPUT enterDown = { INPUT_KEYBOARD };
-    enterDown.ki.wVk = VK_RETURN;
-    INPUT enterUp = enterDown;
-    enterUp.ki.dwFlags = KEYEVENTF_KEYUP;
-    INPUT inputs[2] = { enterDown, enterUp };
-    SendInput(2, inputs, sizeof(INPUT));
+    // Injection not performed in this version – use your own hook logic if needed
 }
 
 int main() {
@@ -108,9 +99,8 @@ int main() {
         return 1;
     }
 
-    Sleep(8000); // Wait for GUI to load fully
+    Sleep(8000); // Allow GUI to appear
     InjectPasswordDirect(password);
 
-    MessageBoxA(NULL, ("✅ Password injected: " + password).c_str(), "Injector", MB_OK | MB_ICONINFORMATION);
     return 0;
 }
